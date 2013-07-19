@@ -52,7 +52,7 @@ check_requirements()
   if [ "root" != "$USER" ]; then
     error "This script must be run as root user."
   fi
-  if [ "$(runlevel|cut -d ' ' -f 2)" != "1" ]; then
+  if [ "$(runlevel)" != "1 S" ]; then # experimental way to check run level.
     notice "Log in from Virtualbox as root (NOT SSH !) and type ${color_cmd}init 1${color_notice} to enter single user runlevel"
     error "This script must be run in single user runlevel"
   fi

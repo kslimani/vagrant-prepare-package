@@ -14,7 +14,7 @@ box_vagrant_user="vagrant"
 box_vagrant_group="vagrant"
 
 required_packages="build-essential module-assistant sed sudo wget zerofree"
-required_commands="apt-get cut fdisk grep locale-gen id"
+required_commands="apt-get awk cut fdisk grep locale-gen id"
 color_error='\E[31;40m'
 color_notice='\E[32;40m'
 color_cmd='\E[35;40m'
@@ -150,12 +150,17 @@ setup_vbox_ga()
   notice "Getting Virtualbox LATEST.TXT ..."
   run wget http://download.virtualbox.org/virtualbox/LATEST.TXT -O LATEST.TXT
   vbox_version=$(<LATEST.TXT)
-  notice "Downloading Virtualbox Guest Additions version $vbox_version ..."
-  run wget http://download.virtualbox.org/virtualbox/${vbox_version}/VBoxGuestAdditions_${vbox_version}.iso -O VBoxGuestAdditions_${vbox_version}.iso
-  run mount -o loop VBoxGuestAdditions_${vbox_version}.iso $mnt_iso
-  notice "Installing Virtualbox Guest Additions version $vbox_version ..."
-  sh $mnt_iso/VBoxLinuxAdditions.run # may fail on X11, safe to ignore.
-  run umount $mnt_iso
+  vbox_current_version=$(modinfo vboxguest|grep "^version: "|awk '{print $2}')
+  if [ "$vbox_current_version" != "$vbox_version" ]; then
+    notice "Downloading Virtualbox Guest Additions version $vbox_version ..."
+    run wget http://download.virtualbox.org/virtualbox/${vbox_version}/VBoxGuestAdditions_${vbox_version}.iso -O VBoxGuestAdditions_${vbox_version}.iso
+    run mount -o loop VBoxGuestAdditions_${vbox_version}.iso $mnt_iso
+    notice "Installing Virtualbox Guest Additions version $vbox_version ..."
+    sh $mnt_iso/VBoxLinuxAdditions.run # may fail on X11, safe to ignore.
+    run umount $mnt_iso
+  else
+    notice "Virtualbox Guest Additions already up-to-date. (version $vbox_current_version)."
+  fi
   run cd
   run rm -rf $tmp_iso
   notice "Checking Virtualbox Guest Additions status"
@@ -164,9 +169,9 @@ setup_vbox_ga()
 
 setup_grub()
 {
-  if ! grep "^GRUB_TIMEOUT=0$" /etc/default/grub &>/dev/null; then
+  if ! grep "^GRUB_TIMEOUT=1$" /etc/default/grub &>/dev/null; then
     notice "Updating GRUB ..."
-    run sed -i -e 's/^GRUB_TIMEOUT=\([0-9]\)\+/GRUB_TIMEOUT=0/' /etc/default/grub;
+    run sed -i -e 's/^GRUB_TIMEOUT=\([0-9]\)\+/GRUB_TIMEOUT=1/' /etc/default/grub;
     run update-grub
   else
     notice "GRUB is already configured."

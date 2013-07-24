@@ -221,6 +221,8 @@ setup_fs()
   notice "Performing zero free blocks on $fsname file-systems ..."
   notice "This may take a few minutes ..."
   run zerofree $fsname
+  notice "Remount $fsname in read-write ..."
+  run mount -o remount,rw $fsname
 }
 
 
@@ -237,7 +239,7 @@ setup_grub
 shrink_box
 setup_locales
 setup_fs
-notice "Box is ready to packaged"
+notice "Box is ready to be packaged, this script can be safely deleted"
 notice "Type ${color_cmd}shutdown -h now${color_notice} to turn off the box"
 notice "Type ${color_cmd}vagrant package --base VBOXNAME${color_notice} from Host OS to create package.box file"
 notice "For more details see http://docs.vagrantup.com/v2/cli/package.html"

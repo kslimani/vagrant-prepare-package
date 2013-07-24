@@ -67,8 +67,8 @@ check_requirements()
 setup_apt()
 {
   notice "Updating APT packages ..."
-  run apt-get -y update
-  run apt-get -y upgrade
+  run apt-get -q -y update
+  run apt-get -q -y upgrade
 }
 
 setup_packages()
@@ -76,7 +76,7 @@ setup_packages()
   for package in $required_packages
   do
     notice "Installing $package package ..."
-    run apt-get -y install $package
+    run apt-get -q -y install $package
   done
 }
 
@@ -141,7 +141,7 @@ setup_key()
 setup_vbox_ga()
 {
   notice "Setup system for Virtualbox Guest Additions compilation ..."
-  run apt-get -y purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
+  run apt-get -q -y purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
   run m-a prepare
   tmp_iso=/tmp/iso
   mnt_iso=$tmp_iso/mnt

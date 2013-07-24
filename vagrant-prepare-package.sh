@@ -194,6 +194,8 @@ shrink_box()
   notice "Clean APT packages ..."
   run apt-get -y autoremove
   run apt-get -y clean
+  notice "Removing temporary files ..."
+  run rm -rf /tmp/*
 }
 
 setup_locales()

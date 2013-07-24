@@ -123,19 +123,22 @@ setup_sudo()
 setup_key()
 {
   notice "Downloading Vagrant keypair ..."
-  run wget https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub -O /tmp/vagrant.pub
+  keys_url=https://raw.github.com/mitchellh/vagrant/master/keys/
   run mkdir -p /home/$box_vagrant_user/.ssh
   run touch /home/$box_vagrant_user/.ssh/authorized_keys
-  if ! grep "$(</tmp/vagrant.pub)" /home/$box_vagrant_user/.ssh/authorized_keys &>/dev/null; then
+  run wget ${keys_url}vagrant -O /home/$box_vagrant_user/.ssh/id_rsa
+  run wget ${keys_url}vagrant.pub -O /home/$box_vagrant_user/.ssh/id_rsa.pub
+  run chmod 600 /home/$box_vagrant_user/.ssh/id_rsa
+  run chmod 600 /home/$box_vagrant_user/.ssh/id_rsa.pub
+  if ! grep "$(</home/$box_vagrant_user/.ssh/id_rsa.pub)" /home/$box_vagrant_user/.ssh/authorized_keys &>/dev/null; then
     notice "Adding Vagrant keypair ..."
-    run cat /tmp/vagrant.pub >> /home/$box_vagrant_user/.ssh/authorized_keys
+    run cat /home/$box_vagrant_user/.ssh/id_rsa.pub >> /home/$box_vagrant_user/.ssh/authorized_keys
     run chown -R $box_vagrant_user:$box_vagrant_group /home/$box_vagrant_user/.ssh
     run chmod 700 /home/$box_vagrant_user/.ssh
     run chmod 600 /home/$box_vagrant_user/.ssh/authorized_keys
   else
     notice "Vagrant keypair already added."
   fi
-  run rm /tmp/vagrant.pub
 }
 
 setup_vbox_ga()

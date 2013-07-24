@@ -156,6 +156,7 @@ setup_vbox_ga()
     run wget http://download.virtualbox.org/virtualbox/${vbox_version}/VBoxGuestAdditions_${vbox_version}.iso -O VBoxGuestAdditions_${vbox_version}.iso
     run mount -o loop VBoxGuestAdditions_${vbox_version}.iso $mnt_iso
     notice "Installing Virtualbox Guest Additions version $vbox_version ..."
+    notice "Answer ${color_cmd}yes${color_notice} if requested by installation process."
     sh $mnt_iso/VBoxLinuxAdditions.run # may fail on X11, safe to ignore.
     run umount $mnt_iso
   else

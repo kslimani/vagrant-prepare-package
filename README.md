@@ -1,9 +1,9 @@
 Setup a custom Linux Debian VirtualBox VM for Vagrant
 =====================================================
 
-To run this script, log in from Virtualbox as root and type `init 1` to enter single user runlevel.
+To run `vagrant-prepare-package.sh` script, log in from Virtualbox as root and type `init 1` to enter single user runlevel.
 
-This script cannot be run using SSH connection.
+__This script cannot be run using SSH connection.__
 
 
 Actions performed
@@ -18,3 +18,11 @@ Actions performed
 * remove some useless files (see script source for more details)
 * configure Locales fr_FR.UTF-8 & en_US.UTF-8 (default locale is `fr_FR.UTF-8`)
 * mount boot file-system as read only & perform zero free blocks (making the disk more easily compressible)
+
+
+Virtualbox guest additions upgrade script
+-----------------------------------------
+
+The `upgrade-vbox-ga.sh` script upgrade Virtualbox guest additions to latest version.
+
+__This script must be run from VM as root user.__

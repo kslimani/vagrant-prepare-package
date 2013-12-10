@@ -143,7 +143,7 @@ setup_vbox_ga()
 {
   notice "Setup system for Virtualbox Guest Additions compilation ..."
   run apt-get -q -y purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
-  run m-a prepare
+  run m-a -i prepare
   tmp_iso=/tmp/iso
   mnt_iso=$tmp_iso/mnt
   run mkdir -p $mnt_iso

@@ -16,7 +16,7 @@ Actions performed
 * install latest VirtualBox Guest Additions (out of date Debian packages are removed)
 * configure GRUB to 1 second timeout (making VM boot faster)
 * remove some useless files (see script source for more details)
-* configure Locales fr_FR.UTF-8 & en_US.UTF-8 (default locale is `fr_FR.UTF-8`)
+* configure Locales using `fr_FR.UTF-8` as default
 * mount boot file-system as read only & perform zero free blocks (making the disk more easily compressible)
 
 

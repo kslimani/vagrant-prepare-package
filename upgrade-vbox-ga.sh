@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Install latest Virtualbox guest additions
+# Install/upgrade latest Virtualbox guest additions
 #
 # This script need to be run as root user.
 #
@@ -56,9 +56,15 @@ check_requirements()
 
 setup_apt()
 {
+  export DEBIAN_FRONTEND=noninteractive
   notice "Updating APT packages ..."
-  run apt-get -q -y update
-  run apt-get -q -y upgrade
+  run_apt_get update
+  run_apt_get upgrade
+}
+
+run_apt_get()
+{
+  run apt-get -q -y $*
 }
 
 setup_packages()
@@ -66,14 +72,14 @@ setup_packages()
   for package in $required_packages
   do
     notice "Installing $package package ..."
-    run apt-get -q -y install $package
+    run_apt_get install $package
   done
 }
 
 setup_vbox_ga()
 {
   notice "Setup system for Virtualbox Guest Additions compilation ..."
-  run apt-get -q -y purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
+  run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
   run m-a -i prepare
   tmp_iso=/tmp/iso
   mnt_iso=$tmp_iso/mnt

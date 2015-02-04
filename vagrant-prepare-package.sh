@@ -13,7 +13,7 @@ box_root_password="" # unused (todo: change root password if not empty)
 box_vagrant_user="vagrant"
 box_vagrant_group="vagrant"
 
-required_packages="build-essential module-assistant sed sudo wget zerofree"
+required_packages="build-essential ca-certificates module-assistant sed sudo wget zerofree"
 required_commands="apt-get awk cut fdisk grep locale-gen id"
 color_error='\E[31;40m'
 color_notice='\E[32;40m'
@@ -66,9 +66,15 @@ check_requirements()
 
 setup_apt()
 {
+  export DEBIAN_FRONTEND=noninteractive
   notice "Updating APT packages ..."
-  run apt-get -q -y update
-  run apt-get -q -y upgrade
+  run_apt_get update
+  run_apt_get upgrade
+}
+
+run_apt_get()
+{
+  run apt-get -q -y $*
 }
 
 setup_packages()
@@ -76,8 +82,22 @@ setup_packages()
   for package in $required_packages
   do
     notice "Installing $package package ..."
-    run apt-get -q -y install $package
+    run_apt_get install $package
   done
+}
+
+setup_locales()
+{
+  notice "Configuring locales ..."
+  if [ ! -f "/etc/locale.gen.vpp" ]; then
+    run cp /etc/locale.gen /etc/locale.gen.vpp
+    printf "en_GB.UTF-8 UTF-8\nen_US.UTF-8 UTF-8\nfr_FR.UTF-8 UTF-8\n" > /etc/locale.gen
+  fi
+  if [ ! -f "/etc/default/locale.vpp" ]; then
+    run cp /etc/default/locale /etc/default/locale.vpp
+    printf "LANG=\"fr_FR.UTF-8\"\n" > /etc/default/locale
+  fi
+  run locale-gen
 }
 
 setup_user()
@@ -120,7 +140,7 @@ setup_sudo()
   fi
 }
 
-setup_key()
+setup_vagrant_key()
 {
   notice "Downloading Vagrant keypair ..."
   keys_url=https://raw.github.com/mitchellh/vagrant/master/keys/
@@ -139,10 +159,18 @@ setup_key()
   run chown -R $box_vagrant_user:$box_vagrant_group /home/$box_vagrant_user/.ssh
 }
 
+remove_libx11()
+{
+  notice "Remove X11 client libraries ..."
+  run_apt_get purge libx11-6
+  run_apt_get autoremove --purge
+  run_apt_get clean
+}
+
 setup_vbox_ga()
 {
   notice "Setup system for Virtualbox Guest Additions compilation ..."
-  run apt-get -q -y purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
+  run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
   run m-a -i prepare
   tmp_iso=/tmp/iso
   mnt_iso=$tmp_iso/mnt
@@ -182,36 +210,20 @@ setup_grub()
 
 shrink_box()
 {
-  notice "Removing shared docs ..."
-  run rm -rf /usr/share/doc
-  # notice "Removing Virtualbox Guest Additions sources ..."
-  # run rm -rf /usr/src/vboxguest*
-  # run rm -rf /usr/src/virtualbox-ose-guest*
-  # notice "Removing Linux headers ..."
-  # run rm -rf /usr/src/linux-headers*
-  notice "Removing cache ..."
-  run find /var/cache -type f -exec rm -rf {} \;
-  notice "Removing some locales (except fr_FR, en_US, en_GB) ..."
-  run rm -rf /usr/share/locale/{af,am,ar,as,ast,az,bal,be,bg,bn,bn_IN,br,bs,byn,ca,cr,cs,csb,cy,da,de,de_AT,dz,el,en_AU,en_CA,eo,es,et,et_EE,eu,fa,fi,fo,fur,ga,gez,gl,gu,haw,he,hi,hr,hu,hy,id,is,it,ja,ka,kk,km,kn,ko,kok,ku,ky,lg,lt,lv,mg,mi,mk,ml,mn,mr,ms,mt,nb,ne,nl,nn,no,nso,oc,or,pa,pl,ps,pt,pt_BR,qu,ro,ru,rw,si,sk,sl,so,sq,sr,sr*latin,sv,sw,ta,te,th,ti,tig,tk,tl,tr,tt,ur,urd,ve,vi,wa,wal,wo,xh,zh,zh_HK,zh_CN,zh_TW,zu}
+  notice "Removing unneeded localizations ..."
+  run_apt_get install localepurge
+  run localepurge
+  run_apt_get purge localepurge
   notice "Clean APT packages ..."
-  run apt-get -y autoremove
-  run apt-get -y clean
+  run_apt_get autoremove
+  run_apt_get clean
+  notice "Removing shared docs ..."
+  run rm -rf /usr/share/doc/*
+  notice "Removing cache ..."
+  run rm -rf /var/cache/*
   notice "Removing temporary files ..."
   run rm -rf /tmp/*
-}
-
-setup_locales()
-{
-  notice "Configuring locales ..."
-  if [ ! -f "/etc/locale.gen.vpp" ]; then
-    run cp /etc/locale.gen /etc/locale.gen.vpp
-    printf "en_GB.UTF-8 UTF-8\nen_US.UTF-8 UTF-8\nfr_FR.UTF-8 UTF-8\n" > /etc/locale.gen
-  fi
-  if [ ! -f "/etc/default/locale.vpp" ]; then
-    run cp /etc/default/locale /etc/default/locale.vpp
-    printf "LANG=\"fr_FR.UTF-8\"\n" > /etc/default/locale
-  fi
-  run locale-gen
+  # TODO: clean /usr/src/ folder ?
 }
 
 setup_fs()
@@ -232,13 +244,14 @@ setup_fs()
 check_requirements
 setup_apt
 setup_packages
+setup_locales
 setup_user
 setup_sudo
-setup_key
+setup_vagrant_key
+remove_libx11
 setup_vbox_ga
 setup_grub
 shrink_box
-setup_locales
 setup_fs
 notice "Box is ready to be packaged, this script can be safely deleted"
 notice "Type ${color_cmd}shutdown -h now${color_notice} to turn off the box"

@@ -1,5 +1,7 @@
 # Setup a custom Linux Debian VirtualBox VM for Vagrant
 
+It is a simple Bash script that i use to prepare a VirtualBox VM with Linux Debian to be packaged with Vagrant.
+
 ## Vagrant box package prepare script
 
 To run `vagrant-prepare-package.sh` script, log in from Virtualbox as root and type `init 1` to enter single user runlevel.

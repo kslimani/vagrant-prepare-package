@@ -17,8 +17,11 @@ __This script cannot be run using SSH connection.__
 * install latest VirtualBox Guest Additions (out of date Debian packages are removed)
 * configure GRUB to 1 second timeout (making VM boot faster)
 * remove some useless files (see script source for more details)
+* configure SSH daemon (disable DNS lookup)
 * configure Locales using `fr_FR.UTF-8` as default
 * mount boot file-system as read only & perform zero free blocks (making the disk more easily compressible)
+
+If optional `--delete` argument is used, the script deletes itself at the end.
 
 ## Virtualbox guest additions upgrade script
 

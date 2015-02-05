@@ -21,6 +21,7 @@ color_cmd='\E[35;40m'
 color_none='\E[0m'
 sudoers="${box_vagrant_user} ALL=(ALL) NOPASSWD: ALL"
 
+_file_=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)/`basename "${BASH_SOURCE[0]}"`
 
 ## SCRIPT FUNCTIONS
 
@@ -84,6 +85,20 @@ setup_packages()
     notice "Installing $package package ..."
     run_apt_get install $package
   done
+}
+
+setup_sshd()
+{
+  cfgfile=/etc/ssh/sshd_config
+  cfgsearch=$(grep "^UseDNS yes" $cfgfile)
+  if [ -z "$cfgsearch" ]; then
+    notice "Configuring OpenSSH SSH daemon ..."
+    if ! printf "\nUseDNS yes\n" >> $cfgfile; then
+      error "Failed to configure OpenSSH SSH daemon"
+    fi
+  else
+    notice "OpenSSH SSH daemon is already configured."
+  fi
 }
 
 setup_locales()
@@ -238,12 +253,20 @@ setup_fs()
   run mount -o remount,rw $fsname
 }
 
+self_delete()
+{
+  if [ -f "$_file_" ]; then
+    run rm $_file_
+  fi
+}
+
 
 ## MAIN SCRIPT
 
 check_requirements
 setup_apt
 setup_packages
+setup_sshd
 setup_locales
 setup_user
 setup_sudo
@@ -253,7 +276,12 @@ setup_vbox_ga
 setup_grub
 shrink_box
 setup_fs
-notice "Box is ready to be packaged, this script can be safely deleted"
+if [ "$1" == "--delete" ]; then
+  self_delete
+  notice "Box is ready to be packaged, this script has been self deleted"
+else
+  notice "Box is ready to be packaged, this script can be safely deleted"
+fi
 notice "Type ${color_cmd}shutdown -h now${color_notice} to turn off the box"
 notice "Type ${color_cmd}vagrant package --base VBOXNAME${color_notice} from Host OS to create package.box file"
 notice "For more details see http://docs.vagrantup.com/v2/cli/package.html"

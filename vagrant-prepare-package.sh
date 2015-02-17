@@ -263,6 +263,20 @@ self_delete()
 
 ## MAIN SCRIPT
 
+opt_delete=0
+opt_remove_x11=0
+for var in "$@"
+do
+  case "$var" in
+    --delete)
+      opt_delete=1
+    ;;
+    --remove-x11)
+      opt_remove_x11=1
+    ;;
+  esac
+done
+
 check_requirements
 setup_apt
 setup_packages
@@ -271,12 +285,14 @@ setup_locales
 setup_user
 setup_sudo
 setup_vagrant_key
-remove_libx11
+if [ "$opt_remove_x11" -eq "1" ]; then
+  remove_libx11
+fi
 setup_vbox_ga
 setup_grub
 shrink_box
 setup_fs
-if [ "$1" == "--delete" ]; then
+if [ "$opt_delete" -eq "1" ]; then
   self_delete
   notice "Box is ready to be packaged, this script has been self deleted"
 else

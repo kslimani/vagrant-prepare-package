@@ -232,8 +232,10 @@ shrink_box()
   notice "Clean APT packages ..."
   run_apt_get autoremove
   run_apt_get clean
-  notice "Removing shared docs ..."
-  run rm -rf /usr/share/doc/*
+  if [ "$opt_remove_doc" -eq "1" ]; then
+    notice "Removing shared docs ..."
+    run rm -rf /usr/share/doc/*
+  fi
   notice "Removing cache ..."
   run rm -rf /var/cache/*
   notice "Removing temporary files ..."
@@ -265,11 +267,15 @@ self_delete()
 
 opt_delete=0
 opt_remove_x11=0
+opt_remove_doc=0
 for var in "$@"
 do
   case "$var" in
     --delete)
       opt_delete=1
+    ;;
+    --remove-doc)
+      opt_remove_doc=1
     ;;
     --remove-x11)
       opt_remove_x11=1

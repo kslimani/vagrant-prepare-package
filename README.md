@@ -22,6 +22,9 @@ __This script cannot be run using SSH connection.__
 * mount boot file-system as read only & perform zero free blocks (making the disk more easily compressible)
 
 If optional `--delete` argument is used, the script deletes itself at the end.
+
+If optional `--remove-doc` argument is used, `/usr/share/doc` folder content is deleted.
+
 If optional `--remove-x11` argument is used, `libx11-6` is removed before install VirtualBox Guest Additions.
 
 ## Virtualbox guest additions upgrade script

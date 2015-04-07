@@ -240,6 +240,7 @@ shrink_box()
   run rm -rf /var/cache/*
   notice "Removing temporary files ..."
   run rm -rf /tmp/*
+  run_apt_get install debconf --reinstall
   # TODO: clean /usr/src/ folder ?
 }
 

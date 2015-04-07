@@ -236,12 +236,12 @@ shrink_box()
     notice "Removing shared docs ..."
     run rm -rf /usr/share/doc/*
   fi
-  notice "Removing cache ..."
-  run rm -rf /var/cache/*
+  if [ "$opt_remove_cache" -eq "1" ]; then
+    notice "Removing cache ..."
+    run rm -rf /var/cache/*
+  fi
   notice "Removing temporary files ..."
   run rm -rf /tmp/*
-  run_apt_get install debconf --reinstall
-  # TODO: clean /usr/src/ folder ?
 }
 
 setup_fs()
@@ -269,6 +269,7 @@ self_delete()
 opt_delete=0
 opt_remove_x11=0
 opt_remove_doc=0
+opt_remove_cache=0
 for var in "$@"
 do
   case "$var" in
@@ -277,6 +278,9 @@ do
     ;;
     --remove-doc)
       opt_remove_doc=1
+    ;;
+    --remove-cache)
+      opt_remove_cache=1
     ;;
     --remove-x11)
       opt_remove_x11=1

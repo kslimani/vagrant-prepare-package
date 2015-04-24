@@ -18,16 +18,17 @@ __This script cannot be run using SSH connection.__
 * configure GRUB to 1 second timeout (making VM boot faster)
 * remove some useless files (see script source for more details)
 * configure SSH daemon (disable DNS lookup)
-* configure Locales using `fr_FR.UTF-8` as default
 * mount boot file-system as read only & perform zero free blocks (making the disk more easily compressible)
 
-If optional `--delete` argument is used, the script deletes itself at the end.
+If `--delete` argument is used, the script deletes itself at the end.
 
-If optional `--remove-doc` argument is used, `/usr/share/doc` folder content is deleted.
+If `--remove-doc` argument is used, `/usr/share/doc` folder content is deleted.
 
-If optional `--remove-cache` argument is used, `/var/cache` folder content is deleted.
+If `--remove-cache` argument is used, `/var/cache` folder content is deleted.
 
-If optional `--remove-x11` argument is used, `libx11-6` is removed before install VirtualBox Guest Additions.
+If `--remove-x11` argument is used, `libx11-6` is removed before install VirtualBox Guest Additions.
+
+If `--setup-locale` argument is used, locale is configured with `fr_FR.UTF-8` as default language.
 
 ## Virtualbox guest additions upgrade script
 

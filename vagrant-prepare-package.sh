@@ -270,6 +270,7 @@ opt_delete=0
 opt_remove_x11=0
 opt_remove_doc=0
 opt_remove_cache=0
+opt_setup_locale=0
 for var in "$@"
 do
   case "$var" in
@@ -285,6 +286,9 @@ do
     --remove-x11)
       opt_remove_x11=1
     ;;
+    --setup-locale)
+      opt_setup_locale=1
+    ;;
   esac
 done
 
@@ -292,7 +296,9 @@ check_requirements
 setup_apt
 setup_packages
 setup_sshd
-setup_locales
+if [ "$opt_setup_locale" -eq "1" ]; then
+  setup_locales
+fi
 setup_user
 setup_sudo
 setup_vagrant_key

@@ -187,8 +187,7 @@ remove_libx11()
 setup_vbox_ga()
 {
   notice "Setup system for Virtualbox Guest Additions compilation ..."
-  # virtualbox-ose-* packages are removed in "Jessie". TODO: Debian distro detection.
-  # run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
+  run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
   run m-a -i prepare
   tmp_iso=/tmp/iso
   mnt_iso=$tmp_iso/mnt

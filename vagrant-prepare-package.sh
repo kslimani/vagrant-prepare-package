@@ -53,7 +53,9 @@ check_requirements()
   if [ "root" != "$USER" ]; then
     error "This script must be run as root user."
   fi
-  if [ "$(runlevel)" != "1 S" ]; then # experimental way to check run level.
+  CURRENT_RUN_LEVEL=$(runlevel|awk '{print $2}')
+  if [ "$CURRENT_RUN_LEVEL" != "1" -a "$CURRENT_RUN_LEVEL" != "S" ]; then
+    notice "Current runlevel is $CURRENT_RUN_LEVEL"
     notice "Log in from Virtualbox as root (NOT SSH !) and type ${color_cmd}init 1${color_notice} to enter single user runlevel"
     error "This script must be run in single user runlevel"
   fi

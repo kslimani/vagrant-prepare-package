@@ -8,7 +8,7 @@
 
 ## SCRIPT VARIABLES
 
-required_packages="build-essential module-assistant sed sudo wget zerofree"
+required_packages="linux-headers-$(uname -r) build-essential dkms module-assistant sed sudo wget zerofree"
 required_commands="apt-get awk cut fdisk grep locale-gen id"
 color_error='\E[31;40m'
 color_notice='\E[32;40m'
@@ -79,8 +79,8 @@ setup_packages()
 setup_vbox_ga()
 {
   notice "Setup system for Virtualbox Guest Additions compilation ..."
-  run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
-  run m-a -i prepare
+  # run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
+  run module-assistant -i prepare
   tmp_iso=/tmp/iso
   mnt_iso=$tmp_iso/mnt
   run mkdir -p $mnt_iso
@@ -102,8 +102,6 @@ setup_vbox_ga()
   fi
   run cd
   run rm -rf $tmp_iso
-  notice "Checking Virtualbox Guest Additions status"
-  run /etc/init.d/vboxadd status
 }
 
 

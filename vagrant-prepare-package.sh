@@ -3,7 +3,8 @@
 #
 # Setup a custom Linux Debian VirtualBox VM for Vagrant.
 #
-# To run this script, log in from Virtualbox as root and type "init 1" to enter single user runlevel.
+# To run this script, log in from Virtualbox as root.
+# To run "zerofree" task type "init 1" to enter single user runlevel.
 # This script cannot be run using SSH connection.
 #
 
@@ -13,7 +14,7 @@ box_root_password="" # unused (todo: change root password if not empty)
 box_vagrant_user="vagrant"
 box_vagrant_group="vagrant"
 
-required_packages="build-essential ca-certificates module-assistant sed sudo wget zerofree"
+required_packages="linux-headers-$(uname -r) build-essential dkms ca-certificates module-assistant sed sudo wget zerofree"
 required_commands="apt-get awk cut fdisk grep locale-gen id"
 color_error='\E[31;40m'
 color_notice='\E[32;40m'
@@ -48,17 +49,25 @@ run()
   fi
 }
 
-check_requirements()
+do_require_root_user()
 {
   if [ "root" != "$USER" ]; then
-    error "This script must be run as root user."
+    error "This part of script must be run as root user."
   fi
+}
+
+do_require_single_runlevel()
+{
   CURRENT_RUN_LEVEL=$(runlevel|awk '{print $2}')
   if [ "$CURRENT_RUN_LEVEL" != "1" -a "$CURRENT_RUN_LEVEL" != "S" ]; then
     notice "Current runlevel is $CURRENT_RUN_LEVEL"
     notice "Log in from Virtualbox as root (NOT SSH !) and type ${color_cmd}init 1${color_notice} to enter single user runlevel"
-    error "This script must be run in single user runlevel"
+    error "This part of script must be run in single user runlevel"
   fi
+}
+
+check_requirements()
+{
   for reqcmd in $required_commands
   do
     if ! which $reqcmd &>/dev/null; then
@@ -94,12 +103,12 @@ setup_sshd()
   cfgfile=/etc/ssh/sshd_config
   cfgsearch=$(grep "^UseDNS no" $cfgfile)
   if [ -z "$cfgsearch" ]; then
-    notice "Configuring OpenSSH SSH daemon ..."
+    notice "Disable DNS lookup in SSH server configuration ..."
     if ! printf "\nUseDNS no\n" >> $cfgfile; then
-      error "Failed to configure OpenSSH SSH daemon"
+      error "Failed to disable DNS lookup in SSH server configuration"
     fi
   else
-    notice "OpenSSH SSH daemon is already configured."
+    notice "DNS lookup is already disabled in SSH server configuration."
   fi
 }
 
@@ -151,7 +160,6 @@ setup_sudo()
     fi
     run mv /etc/sudoers.tmp /etc/sudoers
     run chmod 440 /etc/sudoers
-    run /etc/init.d/sudo restart
   else
     notice "$box_vagrant_user user is already in sudoers file"
   fi
@@ -187,8 +195,9 @@ remove_libx11()
 setup_vbox_ga()
 {
   notice "Setup system for Virtualbox Guest Additions compilation ..."
-  run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
-  run m-a -i prepare
+  # virtualbox-ose-* packages are removed in "Jessie"
+  # run_apt_get purge virtualbox-ose-guest-dkms virtualbox-ose-guest-x11 virtualbox-ose-guest-utils
+  run module-assistant -i prepare
   tmp_iso=/tmp/iso
   mnt_iso=$tmp_iso/mnt
   run mkdir -p $mnt_iso
@@ -210,8 +219,6 @@ setup_vbox_ga()
   fi
   run cd
   run rm -rf $tmp_iso
-  notice "Checking Virtualbox Guest Additions status"
-  run /etc/init.d/vboxadd status
 }
 
 setup_grub()
@@ -265,6 +272,71 @@ self_delete()
   fi
 }
 
+do_prepare_task()
+{
+  # This part can be run as root in multi-user runlevel (as VM)
+  do_require_root_user
+  check_requirements
+  setup_apt
+  setup_packages
+  setup_sshd
+  if [ "$opt_setup_locale" -eq "1" ]; then
+    setup_locales
+  fi
+  setup_user
+  setup_sudo
+  setup_vagrant_key
+  if [ "$opt_remove_x11" -eq "1" ]; then
+    remove_libx11
+  fi
+  setup_vbox_ga
+  setup_grub
+  shrink_box
+
+  do_exit
+}
+
+do_zerofree_task()
+{
+  # This part must be run as root in single user runlevel (as VM)
+  do_require_root_user
+  check_requirements
+  do_require_single_runlevel
+  setup_fs
+  do_exit
+}
+
+usage()
+{
+  __FILE__=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)/`basename "${BASH_SOURCE[0]}"`
+  __SCRIPT_NAME__=$(basename "$__FILE__")
+  printf "Usage: $__SCRIPT_NAME__ [OPTIONS] <TASK>\n\n"
+  printf "TASKS :\n"
+  printf "   prepare    prepare the VM to be packaged with Vagrant\n"
+  printf "   zerofree   mount fs as read only and fills unallocated blocks with zeroes\n\n"
+  printf "OPTIONS :\n"
+  printf "   --delete         self-delete this script at end\n"
+  printf "   --remove-cache   delete /var/cache folder content\n"
+  printf "   --remove-doc     delete /usr/share/doc folder content\n"
+  printf "   --remove-x11     remove libx11-6 package before install VirtualBox Guest Additions\n"
+  printf "   --setup-locale   configure locale with fr_FR.UTF-8 as default language\n\n"
+  exit 3
+}
+
+do_exit()
+{
+  if [ "$opt_delete" -eq "1" ]; then
+    self_delete
+    notice "Script is finished and has been self-deleted"
+  else
+    notice "Script is finished and can be safely deleted"
+  fi
+  notice "Type ${color_cmd}shutdown -h now${color_notice} to turn off the box"
+  notice "Type ${color_cmd}vagrant package --base VBOXNAME${color_notice} from Host OS to create package.box file"
+  notice "For more details see http://docs.vagrantup.com/v2/cli/package.html"
+  exit 0
+}
+
 
 ## MAIN SCRIPT
 
@@ -273,6 +345,8 @@ opt_remove_x11=0
 opt_remove_doc=0
 opt_remove_cache=0
 opt_setup_locale=0
+opt_task=""
+
 for var in "$@"
 do
   case "$var" in
@@ -291,33 +365,20 @@ do
     --setup-locale)
       opt_setup_locale=1
     ;;
+    prepare|zerofree)
+      opt_task=$var
+    ;;
   esac
 done
 
-check_requirements
-setup_apt
-setup_packages
-setup_sshd
-if [ "$opt_setup_locale" -eq "1" ]; then
-  setup_locales
-fi
-setup_user
-setup_sudo
-setup_vagrant_key
-if [ "$opt_remove_x11" -eq "1" ]; then
-  remove_libx11
-fi
-setup_vbox_ga
-setup_grub
-shrink_box
-setup_fs
-if [ "$opt_delete" -eq "1" ]; then
-  self_delete
-  notice "Box is ready to be packaged, this script has been self deleted"
-else
-  notice "Box is ready to be packaged, this script can be safely deleted"
-fi
-notice "Type ${color_cmd}shutdown -h now${color_notice} to turn off the box"
-notice "Type ${color_cmd}vagrant package --base VBOXNAME${color_notice} from Host OS to create package.box file"
-notice "For more details see http://docs.vagrantup.com/v2/cli/package.html"
-exit 0
+case "$opt_task" in
+  prepare)
+    do_prepare_task
+  ;;
+  zerofree)
+    do_zerofree_task
+  ;;
+  *)
+    usage
+  ;;
+esac

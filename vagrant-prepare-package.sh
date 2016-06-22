@@ -92,10 +92,10 @@ setup_packages()
 setup_sshd()
 {
   cfgfile=/etc/ssh/sshd_config
-  cfgsearch=$(grep "^UseDNS yes" $cfgfile)
+  cfgsearch=$(grep "^UseDNS no" $cfgfile)
   if [ -z "$cfgsearch" ]; then
     notice "Configuring OpenSSH SSH daemon ..."
-    if ! printf "\nUseDNS yes\n" >> $cfgfile; then
+    if ! printf "\nUseDNS no\n" >> $cfgfile; then
       error "Failed to configure OpenSSH SSH daemon"
     fi
   else

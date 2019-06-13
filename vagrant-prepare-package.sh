@@ -202,9 +202,17 @@ setup_vbox_ga()
   mnt_iso=$tmp_iso/mnt
   run mkdir -p $mnt_iso
   run cd $tmp_iso
-  notice "Getting Virtualbox LATEST.TXT ..."
-  run wget http://download.virtualbox.org/virtualbox/LATEST.TXT -O LATEST.TXT
-  vbox_version=$(<LATEST.TXT)
+
+  # Check if VBOX_GA env variable is set
+  if [ -z "$VBOX_GA" ]; then
+    notice "Getting Virtualbox Guest Additions latest version ..."
+    run wget http://download.virtualbox.org/virtualbox/LATEST.TXT -O LATEST.TXT
+    vbox_version=$(<LATEST.TXT)
+  else
+    vbox_version=$VBOX_GA
+    notice "Virtualbox Guest Additions version locked to $vbox_version"
+  fi
+
   vbox_current_version=$(modinfo vboxguest|grep "^version: "|awk '{print $2}')
   if [ "$vbox_current_version" != "$vbox_version" ]; then
     notice "Downloading Virtualbox Guest Additions version $vbox_version ..."

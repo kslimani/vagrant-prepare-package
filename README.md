@@ -31,7 +31,7 @@ OPTIONS :
 * add new user and group (password-less, default is `vagrant`)
 * configure new user in sudoers file (remove sudo password prompt)
 * install Vagrant "insecure" public/private keypair
-* install latest VirtualBox Guest Additions
+* install latest VirtualBox Guest Additions (version can be lock with `VBOX_GA` env variable)
 * configure GRUB to 1 second timeout (making VM boot faster)
 * remove some useless files (see script source for more details)
 * disable DNS lookup in SSH server configuration

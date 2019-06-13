@@ -89,7 +89,7 @@ setup_vbox_ga()
   # Check if VBOX_GA env variable is set
   if [ -z "$VBOX_GA" ]; then
     notice "Getting Virtualbox Guest Additions latest version ..."
-    run wget http://download.virtualbox.org/virtualbox/LATEST.TXT -O LATEST.TXT
+    run wget https://download.virtualbox.org/virtualbox/LATEST.TXT -O LATEST.TXT
     vbox_version=$(<LATEST.TXT)
   else
     vbox_version=$VBOX_GA
@@ -99,7 +99,7 @@ setup_vbox_ga()
   vbox_current_version=$(modinfo vboxguest|grep "^version: "|awk '{print $2}')
   if [ "$vbox_current_version" != "$vbox_version" ]; then
     notice "Downloading Virtualbox Guest Additions version $vbox_version ..."
-    run wget http://download.virtualbox.org/virtualbox/${vbox_version}/VBoxGuestAdditions_${vbox_version}.iso -O VBoxGuestAdditions_${vbox_version}.iso
+    run wget https://download.virtualbox.org/virtualbox/${vbox_version}/VBoxGuestAdditions_${vbox_version}.iso -O VBoxGuestAdditions_${vbox_version}.iso
     run mount -o loop VBoxGuestAdditions_${vbox_version}.iso $mnt_iso
     notice "Installing Virtualbox Guest Additions version $vbox_version ..."
     notice "Answer ${color_cmd}yes${color_notice} if requested by installation process."
